@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start Working Remotely</title>
+  <meta name="description" content="Start Working Remotely - Production-ready AI Job Hunting system with vector matching, auto-scraping, cover letter generator, and AI interview prep.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-icon">🌐</div>
+        Start Working Remotely
+      </div>
+
+      <nav class="nav-tabs">
+        <button class="tab-btn active" id="tab-btn-feed" onclick="switchTab('feed')">
+          <span>📊</span> Feed & Matches
+        </button>
+        <button class="tab-btn" id="tab-btn-resume" onclick="switchTab('resume')">
+          <span>📄</span> Resume Vectorizer
+        </button>
+        <button class="tab-btn" id="tab-btn-letters" onclick="switchTab('letters')">
+          <span>✉️</span> Cover Letter Studio
+        </button>
+        <button class="tab-btn" id="tab-btn-interview" onclick="switchTab('interview')">
+          <span>🎤</span> AI Mock Interviewer
+        </button>
+        <button class="tab-btn" id="tab-btn-settings" onclick="switchTab('settings')">
+          <span>⚙️</span> Settings
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Live Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Jobs Scraped</div>
+        <div class="stat-value" id="stat-total-jobs">0</div>
+      </div>
+      <div class="stat-card emerald">
+        <div class="stat-label">Top Matches (Score ≥ 0.75)</div>
+        <div class="stat-value" id="stat-top-matches">0</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Cover Letters Generated</div>
+        <div class="stat-value" id="stat-letters">0</div>
+      </div>
+      <div class="stat-card pink">
+        <div class="stat-label">Resume Vector Status</div>
+        <div class="stat-value" id="stat-resume-status" style="font-size: 1.4rem; padding-top: 0.4rem;">Loaded</div>
+      </div>
+    </div>
+
+    <!-- TAB 1: Feed & Matches -->
+    <div class="tab-content active" id="tab-feed">
+      <div class="controls-bar">
+        <div class="search-group">
+          <input type="text" id="search-input" placeholder="Filter by title, company, or skills..." oninput="filterJobs()">
+          <select id="score-filter" style="width: 210px;" onchange="filterJobs()">
+            <option value="0.75">Score ≥ 0.75 (High Match)</option>
+            <option value="0.60" selected>Score ≥ 0.60 (Good Match)</option>
+            <option value="0.50">Score ≥ 0.50 (Fair Match)</option>
+            <option value="0.30">Score ≥ 0.30 (Broad)</option>
+            <option value="0.00">All Scraped Jobs</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button class="btn btn-secondary" id="btn-upload-cv-quick" onclick="document.getElementById('cv-file-input').click()">
+            <span>📤</span> Upload CV
+          </button>
+          <button class="btn btn-secondary" id="btn-re-rank" onclick="triggerReMatch()">
+            <span>🎯</span> Re-Rank Match
+          </button>
+          <button class="btn" id="btn-scan" onclick="triggerScan()">
+            <span>⚡</span> Fetch More Jobs
+          </button>
+        </div>
+      </div>
+
+      <div class="jobs-list" id="jobs-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Hidden File Input for CV Upload -->
+    <input type="file" id="cv-file-input" accept=".pdf,.txt,.md,.docx" style="display: none;" onchange="handleCvFileUpload(event)">
+
+    <!-- TAB 2: Resume Vectorizer -->
+    <div class="tab-content" id="tab-resume">
+      <div class="panel">
+        <div class="panel-title">
+          <span>📄</span> Upload CV / Resume & Vectorize
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 1.25rem;">
+          Upload your CV (PDF, TXT, MD) or edit the text directly below. The system automatically parses your CV, extracts skills & experience vectors, and re-ranks all job opportunities.
+        </p>
+
+        <!-- Drag and Drop Upload Zone -->
+        <div id="drop-zone" onclick="document.getElementById('cv-file-input').click()" style="border: 2px dashed rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.04); border-radius: var(--radius-lg); padding: 2rem; text-align: center; cursor: pointer; margin-bottom: 1.5rem; transition: all 0.2s ease;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📁</div>
+          <div style="font-weight: 700; font-size: 1.1rem; color: #38bdf8; margin-bottom: 0.25rem;">Click or Drag & Drop your CV here</div>
+          <div style="font-size: 0.85rem; color: var(--text-dim);">Supports PDF, TXT, MD, DOCX (Max 10MB)</div>
+        </div>
+
+        <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">Extracted CV Text Content:</div>
+        <textarea id="resume-textarea" rows="16" placeholder="Paste or view your markdown/plain text resume here..."></textarea>
+        <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 1rem;">
+          <button class="btn" id="btn-save-resume" onclick="saveResume()">
+            <span>💾</span> Save & Re-index Embeddings
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- TAB 3: Cover Letter Studio -->
+    <div class="tab-content" id="tab-letters">
+      <div class="panel">
+        <div class="panel-title">
+          <span>✉️</span> AI Cover Letter Generator Studio
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">
+          Select a matched job from your feed or generate letters on demand using local Ollama LLMs or OpenRouter.
+        </p>
+        <div id="cover-letter-workspace">
+          <p style="color: var(--text-dim);">Select a job in the Feed tab and click "Draft Cover Letter" to generate.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Mock Interviewer -->
+    <div class="tab-content" id="tab-interview">
+      <div class="panel">
+        <div class="panel-title">
+          <span>🎤</span> AI Mock Interviewer & Evaluation Agent
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">
+          Practice answering 15 technical, behavioral, and situational questions tailored specifically to your target roles.
+        </p>
+        <div id="interview-workspace">
+          <p style="color: var(--text-dim);">Select a job in the Feed tab and click "Interview Prep" to generate custom questions.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: Settings -->
+    <div class="tab-content" id="tab-settings">
+      <div class="panel">
+        <div class="panel-title">
+          <span>⚙️</span> System Configuration
+        </div>
+        <div style="display: grid; gap: 1rem; max-width: 600px;">
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 0.4rem;">Default Search Role Query</label>
+            <input type="text" id="cfg-role" value="software engineer">
+          </div>
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 0.4rem;">Location Filter</label>
+            <input type="text" id="cfg-location" value="remote">
+          </div>
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 0.4rem;">Ollama API Base URL (Local LLM)</label>
+            <input type="text" id="cfg-ollama" value="http://localhost:11434">
+          </div>
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 0.4rem;">OpenRouter API Key (Optional Cloud LLM)</label>
+            <input type="text" id="cfg-openrouter" placeholder="sk-or-v1-...">
+          </div>
+          <div style="margin-top: 1rem;">
+            <button class="btn btn-purple" onclick="saveSettings()">Save Settings</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Viewer -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">Modal Header</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Content -->
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

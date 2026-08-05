@@ -1,0 +1,30 @@
+{
+  "search_terms": [
+    "Software Engineer",
+    "Full Stack Developer",
+    "Backend Engineer",
+    "Frontend Engineer",
+    "AI Engineer",
+    "Python Developer"
+  ],
+  "location": "remote",
+  "hours_old": 24,
+  "min_score": 0.75,
+  "max_results_per_source": 50,
+  "target_companies": [
+    "mistral.ai",
+    "huggingface.co",
+    "stripe.com",
+    "cloudflare.com",
+    "gitlab.com",
+    "github.com",
+    "openai.com",
+    "anthropic.com",
+    "cohere.com",
+    "meta.com"
+  ],
+  "scan_schedule": "0 2 * * *",
+  "telegram_enabled": false,
+  "scoring_model": "openrouter/anthropic/claude-3.5-sonnet",
+  "ollama_model": "llama3.2"
+}
