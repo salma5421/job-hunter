@@ -3,6 +3,7 @@ import sqlite3
 import hashlib
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from core.db import save_job, get_connection
 
@@ -17,7 +18,7 @@ def scrape_remotive(search_term="software engineer"):
     jobs = []
     try:
         url = f"https://remotive.com/api/remote-jobs?search={requests.utils.quote(search_term)}"
-        res = requests.get(url, timeout=12)
+        res = requests.get(url, timeout=5)
         if res.status_code == 200:
             data = res.json()
             for item in data.get('jobs', []):
@@ -33,14 +34,14 @@ def scrape_remotive(search_term="software engineer"):
                     'date_posted': item.get('publication_date', datetime.now().isoformat())
                 })
     except Exception as e:
-        logger.error(f"Remotive scraping error: {e}")
+        logger.info(f"Remotive fetch skipped/timed out: {e}")
     return jobs
 
-def scrape_arbeitnow(search_term="software engineer"):
+def scrape_arbeitnow():
     jobs = []
     try:
         url = "https://www.arbeitnow.com/api/job-board-api"
-        res = requests.get(url, timeout=12)
+        res = requests.get(url, timeout=5)
         if res.status_code == 200:
             data = res.json()
             for item in data.get('data', []):
@@ -57,14 +58,14 @@ def scrape_arbeitnow(search_term="software engineer"):
                     'date_posted': datetime.now().isoformat()
                 })
     except Exception as e:
-        logger.error(f"Arbeitnow scraping error: {e}")
+        logger.info(f"Arbeitnow fetch skipped/timed out: {e}")
     return jobs
 
-def scrape_remoteok(search_term="software engineer"):
+def scrape_remoteok():
     jobs = []
     try:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-        res = requests.get("https://remoteok.com/api", headers=headers, timeout=12)
+        res = requests.get("https://remoteok.com/api", headers=headers, timeout=5)
         if res.status_code == 200:
             data = res.json()
             for item in data:
@@ -83,15 +84,15 @@ def scrape_remoteok(search_term="software engineer"):
                     'date_posted': item.get('date', datetime.now().isoformat())
                 })
     except Exception as e:
-        logger.error(f"RemoteOK scraping error: {e}")
+        logger.info(f"RemoteOK fetch skipped/timed out: {e}")
     return jobs
 
-def scrape_jobicy(search_term="software engineer"):
+def scrape_jobicy():
     jobs = []
     try:
-        url = f"https://jobicy.com/api/v2/remote-jobs?count=50&geo=any"
+        url = "https://jobicy.com/api/v2/remote-jobs?count=50&geo=any"
         headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get(url, headers=headers, timeout=12)
+        res = requests.get(url, headers=headers, timeout=5)
         if res.status_code == 200:
             data = res.json()
             for item in data.get('jobs', []):
@@ -108,7 +109,7 @@ def scrape_jobicy(search_term="software engineer"):
                     'date_posted': item.get('pubDate', datetime.now().isoformat())
                 })
     except Exception as e:
-        logger.error(f"Jobicy scraping error: {e}")
+        logger.info(f"Jobicy fetch skipped/timed out: {e}")
     return jobs
 
 def scrape_himalayas():
@@ -116,7 +117,7 @@ def scrape_himalayas():
     try:
         url = "https://himalayas.app/jobs/api?limit=50"
         headers = {'User-Agent': 'Mozilla/5.0'}
-        res = requests.get(url, headers=headers, timeout=12)
+        res = requests.get(url, headers=headers, timeout=5)
         if res.status_code == 200:
             data = res.json()
             for item in data.get('jobs', []):
@@ -133,55 +134,34 @@ def scrape_himalayas():
                     'date_posted': datetime.now().isoformat()
                 })
     except Exception as e:
-        logger.error(f"Himalayas scraping error: {e}")
-    return jobs
-
-def scrape_with_jobspy(search_term="software engineer", location="remote", results_wanted=50):
-    jobs = []
-    try:
-        from jobspy import scrape_jobs
-        df = scrape_jobs(
-            site_name=["indeed", "linkedin", "glassdoor"],
-            search_term=search_term,
-            location=location,
-            results_wanted=results_wanted,
-            hours_old=24
-        )
-        for _, row in df.iterrows():
-            company = str(row.get('company', ''))
-            title = str(row.get('title', ''))
-            date_posted = str(row.get('date_posted', datetime.now().isoformat()))
-            unique_id = generate_unique_id(company, title, date_posted)
-            jobs.append({
-                'id': unique_id,
-                'title': title,
-                'company': company,
-                'location': str(row.get('location', 'Remote')),
-                'description': str(row.get('description', '')),
-                'url': str(row.get('job_url', '')),
-                'source': str(row.get('site', 'JobSpy')),
-                'date_posted': date_posted
-            })
-    except Exception as e:
-        logger.warning(f"JobSpy optional fallback: {e}")
+        logger.info(f"Himalayas fetch skipped/timed out: {e}")
     return jobs
 
 def run_job_scraper(search_term="software engineer", location="remote", hours_old=24):
-    logger.info(f"Starting multi-source job scrape for: '{search_term}'...")
+    logger.info(f"Starting lightweight parallel job scrape for: '{search_term}'...")
     all_jobs = []
     
-    # Target search queries to maximize result volume across all tech fields
-    queries = list(set([search_term, "software engineer", "developer", "full stack", "backend", "python", "ai engineer", "data engineer"]))
-    
-    for q in queries:
-        all_jobs.extend(scrape_remotive(q))
+    tasks = [
+        lambda: scrape_remotive(search_term),
+        lambda: scrape_remotive("developer"),
+        lambda: scrape_remotive("python"),
+        scrape_arbeitnow,
+        scrape_remoteok,
+        scrape_jobicy,
+        scrape_himalayas
+    ]
 
-    all_jobs.extend(scrape_arbeitnow(search_term))
-    all_jobs.extend(scrape_remoteok(search_term))
-    all_jobs.extend(scrape_jobicy(search_term))
-    all_jobs.extend(scrape_himalayas())
-    all_jobs.extend(scrape_with_jobspy(search_term, location))
-    
+    # Execute all API scrapers concurrently in parallel threads
+    with ThreadPoolExecutor(max_workers=7) as executor:
+        futures = [executor.submit(t) for t in tasks]
+        for f in as_completed(futures):
+            try:
+                res = f.result()
+                if res:
+                    all_jobs.extend(res)
+            except Exception as err:
+                logger.info(f"Worker task error: {err}")
+
     # Save into SQLite database with deduplication
     conn = get_connection()
     c = conn.cursor()
@@ -202,4 +182,5 @@ def run_job_scraper(search_term="software engineer", location="remote", hours_ol
 
 if __name__ == "__main__":
     res = run_job_scraper("software engineer")
-    print("Multi-Source Scrape Result:", res)
+    print("Parallel Scrape Result:", res)
+

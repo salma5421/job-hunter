@@ -219,14 +219,21 @@ async function startInterviewPrep(jobId) {
         html += `<h3 style="font-family: Outfit; color: var(--accent-cyan); text-transform: capitalize;">${cat} Questions</h3>`;
         questionsData[cat].forEach((qObj, idx) => {
           const qId = `${cat}_${idx}`;
+          const sampleAns = qObj.sample_answer ? escapeHtml(qObj.sample_answer) : '';
           html += `
             <div class="qa-card">
               <div class="qa-question">Q${idx + 1}: ${escapeHtml(qObj.question)}</div>
               <div class="qa-hint">💡 What interviewer looks for: ${escapeHtml(qObj.what_interviewer_looks_for)}</div>
               <textarea id="ans_${qId}" rows="3" placeholder="Type your mock answer here to be evaluated by AI..."></textarea>
-              <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+              <div style="margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                 <button class="btn btn-secondary" onclick="evaluateAnswer('${qId}', \`${escapeJs(qObj.question)}\`)">Submit for AI Grade</button>
+                ${sampleAns ? `<button class="btn btn-secondary" style="border-color: var(--accent-purple);" onclick="toggleSampleAnswer('${qId}')">💡 View Model Answer</button>` : ''}
               </div>
+              ${sampleAns ? `
+                <div id="sample_${qId}" style="display:none; margin-top: 0.8rem; padding: 0.8rem 1rem; background: rgba(147, 51, 234, 0.12); border-left: 3px solid var(--accent-purple); border-radius: 6px; font-size: 0.88rem; color: #e2e8f0; line-height: 1.5;">
+                  <strong style="color: var(--accent-purple);">🌟 Ideal Model Answer:</strong><br>${sampleAns}
+                </div>
+              ` : ''}
               <div id="eval_result_${qId}"></div>
             </div>
           `;
@@ -238,6 +245,13 @@ async function startInterviewPrep(jobId) {
     setModalContent('AI Mock Interview Questions & Feedback', html);
   } catch (e) {
     setModalContent('Error', 'Failed to generate interview questions: ' + e);
+  }
+}
+
+function toggleSampleAnswer(qId) {
+  const el = document.getElementById(`sample_${qId}`);
+  if (el) {
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
   }
 }
 
