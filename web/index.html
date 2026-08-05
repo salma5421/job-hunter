@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Start Working Remotely</title>
-  <meta name="description" content="Start Working Remotely - Production-ready AI Job Hunting system with vector matching, auto-scraping, cover letter generator, and AI interview prep.">
+  <title>Start Working Remotely - AI Job Hunting & Interview Studio</title>
+  <meta name="description" content="Start Working Remotely - Vector matching job scraper, ATS cover letter studio, and AI mock interviewer.">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
 </head>
@@ -15,7 +15,10 @@
     <div class="nav-container">
       <div class="logo">
         <div class="logo-icon">🌐</div>
-        Start Working Remotely
+        <div style="display: flex; flex-direction: column;">
+          <span style="font-family: Outfit; font-weight: 800; font-size: 1.35rem; line-height: 1.1;">Start Working Remotely</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500; letter-spacing: 0.05em;">AI Vector Job Matcher & Career Suite</span>
+        </div>
       </div>
 
       <nav class="nav-tabs">
@@ -42,20 +45,20 @@
     <!-- Live Stats -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-label">Total Jobs Scraped</div>
+        <div class="stat-label">Total Remote Jobs</div>
         <div class="stat-value" id="stat-total-jobs">0</div>
       </div>
       <div class="stat-card emerald">
-        <div class="stat-label">Top Matches (Score ≥ 0.75)</div>
+        <div class="stat-label">Top Matched Roles</div>
         <div class="stat-value" id="stat-top-matches">0</div>
       </div>
       <div class="stat-card purple">
-        <div class="stat-label">Cover Letters Generated</div>
+        <div class="stat-label">Cover Letters Ready</div>
         <div class="stat-value" id="stat-letters">0</div>
       </div>
       <div class="stat-card pink">
         <div class="stat-label">Resume Vector Status</div>
-        <div class="stat-value" id="stat-resume-status" style="font-size: 1.4rem; padding-top: 0.4rem;">Loaded</div>
+        <div class="stat-value" id="stat-resume-status" style="font-size: 1.4rem; padding-top: 0.4rem;">Active</div>
       </div>
     </div>
 
@@ -63,13 +66,12 @@
     <div class="tab-content active" id="tab-feed">
       <div class="controls-bar">
         <div class="search-group">
-          <input type="text" id="search-input" placeholder="Filter by title, company, or skills..." oninput="filterJobs()">
-          <select id="score-filter" style="width: 210px;" onchange="filterJobs()">
-            <option value="0.75">Score ≥ 0.75 (High Match)</option>
-            <option value="0.60" selected>Score ≥ 0.60 (Good Match)</option>
-            <option value="0.50">Score ≥ 0.50 (Fair Match)</option>
-            <option value="0.30">Score ≥ 0.30 (Broad)</option>
-            <option value="0.00">All Scraped Jobs</option>
+          <input type="text" id="search-input" placeholder="Search title, company, skills..." oninput="filterJobs()">
+          <select id="score-filter" style="width: 220px;" onchange="filterJobs()">
+            <option value="0.70">Score ≥ 70% (High Match)</option>
+            <option value="0.50" selected>Score ≥ 50% (Good Match)</option>
+            <option value="0.30">Score ≥ 30% (Broad Roles)</option>
+            <option value="0.00">All Scraped Roles</option>
           </select>
         </div>
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
@@ -77,10 +79,10 @@
             <span>📤</span> Upload CV
           </button>
           <button class="btn btn-secondary" id="btn-re-rank" onclick="triggerReMatch()">
-            <span>🎯</span> Re-Rank Match
+            <span>🎯</span> Re-Rank Vector Match
           </button>
           <button class="btn" id="btn-scan" onclick="triggerScan()">
-            <span>⚡</span> Fetch More Jobs
+            <span>⚡</span> Fetch Fresh Roles
           </button>
         </div>
       </div>
@@ -99,19 +101,19 @@
         <div class="panel-title">
           <span>📄</span> Upload CV / Resume & Vectorize
         </div>
-        <p style="color: var(--text-muted); margin-bottom: 1.25rem;">
-          Upload your CV (PDF, TXT, MD) or edit the text directly below. The system automatically parses your CV, extracts skills & experience vectors, and re-ranks all job opportunities.
+        <p style="color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
+          Upload your CV (PDF, DOCX, TXT, MD) or edit your resume text directly below. The system extracts skills & domain vectors to re-rank all scraped job postings.
         </p>
 
         <!-- Drag and Drop Upload Zone -->
         <div id="drop-zone" onclick="document.getElementById('cv-file-input').click()" style="border: 2px dashed rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.04); border-radius: var(--radius-lg); padding: 2rem; text-align: center; cursor: pointer; margin-bottom: 1.5rem; transition: all 0.2s ease;">
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📁</div>
           <div style="font-weight: 700; font-size: 1.1rem; color: #38bdf8; margin-bottom: 0.25rem;">Click or Drag & Drop your CV here</div>
-          <div style="font-size: 0.85rem; color: var(--text-dim);">Supports PDF, TXT, MD, DOCX (Max 10MB)</div>
+          <div style="font-size: 0.85rem; color: var(--text-dim);">Supports PDF, DOCX, TXT, MD</div>
         </div>
 
-        <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">Extracted CV Text Content:</div>
-        <textarea id="resume-textarea" rows="16" placeholder="Paste or view your markdown/plain text resume here..."></textarea>
+        <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-main);">Extracted Resume Vector Text:</div>
+        <textarea id="resume-textarea" rows="16" placeholder="Paste or view your resume text here..."></textarea>
         <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 1rem;">
           <button class="btn" id="btn-save-resume" onclick="saveResume()">
             <span>💾</span> Save & Re-index Embeddings
@@ -125,14 +127,45 @@
     <div class="tab-content" id="tab-letters">
       <div class="panel">
         <div class="panel-title">
-          <span>✉️</span> AI Cover Letter Generator Studio
+          <span>✉️</span> AI Cover Letter Studio
         </div>
-        <p style="color: var(--text-muted); margin-bottom: 1rem;">
-          Select a matched job from your feed or generate letters on demand using local Ollama LLMs or OpenRouter.
+        <p style="color: var(--text-muted); margin-bottom: 1.25rem;">
+          Select a target job position to generate an ATS-tailored cover letter based on your candidate profile.
         </p>
-        <div id="cover-letter-workspace">
-          <p style="color: var(--text-dim);">Select a job in the Feed tab and click "Draft Cover Letter" to generate.</p>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+          <div>
+            <label style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; display: block; color: var(--text-muted);">Select Target Job Role:</label>
+            <select id="cl-job-select" onchange="loadCoverLetterForSelectedJob()">
+              <option value="">-- Choose a Matched Job --</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; display: block; color: var(--text-muted);">Cover Letter Tone:</label>
+            <select id="cl-tone-select">
+              <option value="ats">Standard Professional (ATS Optimized)</option>
+              <option value="tech">Technical & Engineering Focused</option>
+              <option value="leadership">Leadership & PR Focused</option>
+              <option value="enthusiastic">High Energy & Enthusiastic</option>
+            </select>
+          </div>
         </div>
+
+        <div style="margin-bottom: 1.5rem;">
+          <button class="btn btn-purple" id="btn-gen-cl" onclick="generateCoverLetterInStudio()">
+            <span>✉️</span> Generate Tailored Cover Letter
+          </button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-weight: 600; font-size: 0.95rem;">Generated Cover Letter Draft:</span>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <span id="cl-word-count" style="font-size: 0.85rem; color: var(--text-dim);">0 words</span>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.8rem; font-size: 0.85rem;" onclick="copyCoverLetterText()">📋 Copy Text</button>
+            <button class="btn btn-secondary" style="padding: 0.35rem 0.8rem; font-size: 0.85rem;" onclick="downloadCoverLetterText()">💾 Download .txt</button>
+          </div>
+        </div>
+        <textarea id="cl-output-text" rows="18" placeholder="Select a job and click Generate to build your tailored cover letter..."></textarea>
       </div>
     </div>
 
@@ -140,13 +173,32 @@
     <div class="tab-content" id="tab-interview">
       <div class="panel">
         <div class="panel-title">
-          <span>🎤</span> AI Mock Interviewer & Evaluation Agent
+          <span>🎤</span> AI Mock Interviewer & Feedback Studio
         </div>
-        <p style="color: var(--text-muted); margin-bottom: 1rem;">
-          Practice answering 15 technical, behavioral, and situational questions tailored specifically to your target roles.
+        <p style="color: var(--text-muted); margin-bottom: 1.25rem;">
+          Practice answering targeted technical, behavioral, and situational questions. Submit your response for immediate AI grading and feedback.
         </p>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px;">
+            <label style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; display: block; color: var(--text-muted);">Select Target Role:</label>
+            <select id="int-job-select" onchange="loadInterviewForSelectedJob()">
+              <option value="">-- Choose a Matched Job --</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button class="btn" onclick="generateInterviewQuestionsInStudio()">
+              <span>🎤</span> Load Interview Questions
+            </button>
+          </div>
+        </div>
+
         <div id="interview-workspace">
-          <p style="color: var(--text-dim);">Select a job in the Feed tab and click "Interview Prep" to generate custom questions.</p>
+          <div style="text-align: center; padding: 3rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); border: 1px dashed var(--border-glass);">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎯</div>
+            <h4 style="font-family: Outfit; font-size: 1.2rem; margin-bottom: 0.5rem;">No Role Selected</h4>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Choose a job from the dropdown above to load role-specific mock questions and model answers.</p>
+          </div>
         </div>
       </div>
     </div>

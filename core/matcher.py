@@ -21,7 +21,9 @@ def read_resume_file(filepath="resume.md"):
             with open(filepath, 'rb') as f:
                 reader = PyPDF2.PdfReader(f)
                 for page in reader.pages:
-                    text += page.extract_text() + "\n"
+                    t = page.extract_text()
+                    if t:
+                        text += t + "\n"
             return text
         except Exception as e:
             print(f"Error reading PDF resume: {e}")
@@ -45,6 +47,8 @@ def clean_text(text):
 
 def extract_key_skills(text):
     """Extract domain and technical keywords from candidate resume or job posting."""
+    if not text:
+        return set()
     text_lower = text.lower()
     skills = set()
     
@@ -53,16 +57,17 @@ def extract_key_skills(text):
         'electronics', 'logic circuits', 'proteus', 'cad', 'networking', 'customer service',
         'public relations', 'support', 'leadership', 'project management', 'agile', 'data',
         'software', 'engineer', 'developer', 'hardware', 'systems', 'communications',
-        'security', 'operations', 'analytical', 'research', 'full stack', 'backend', 'frontend'
+        'security', 'operations', 'analytical', 'research', 'full stack', 'backend', 'frontend',
+        'embedded', 'circuit', 'signal', 'instrumental', 'technical support', 'event management'
     ]
     
     for s in dict_skills:
-        if s in text_lower:
+        if re.search(rf'\b{re.escape(s)}\b', text_lower):
             skills.add(s)
             
     # Also extract 4+ char single words
     words = set(re.findall(r'\b[a-z]{4,}\b', text_lower))
-    stopwords = {'with', 'that', 'this', 'from', 'have', 'more', 'about', 'team', 'work', 'your', 'will', 'role', 'looking', 'ability'}
+    stopwords = {'with', 'that', 'this', 'from', 'have', 'more', 'about', 'team', 'work', 'your', 'will', 'role', 'looking', 'ability', 'required', 'responsibilities', 'experience', 'years'}
     words -= stopwords
     
     return skills.union(words)
@@ -94,22 +99,30 @@ def calculate_cosine_similarity(text1, text2):
         shared = skills1.intersection(skills2)
         overlap_score = len(shared) / max(1.0, float(len(skills2)))
 
-    # 3. Title & Role Keyword Synergy
+    # 3. Title & Role Synergy
     t1_lower = t1.lower()
     t2_lower = t2.lower()
     
-    high_priority_keywords = ['engineer', 'developer', 'python', 'software', 'support', 'electronics', 'cybersecurity', 'tech', 'customer', 'data', 'analyst', 'project']
-    synergy_count = sum(1 for kw in high_priority_keywords if kw in t1_lower and kw in t2_lower)
-    title_boost = min(0.30, synergy_count * 0.08)
+    core_tech_keywords = ['engineer', 'electronics', 'cybersecurity', 'python', 'support', 'customer', 'project', 'hardware', 'systems', 'analyst', 'data', 'c++', 'c ']
+    synergy_count = sum(1 for kw in core_tech_keywords if kw in t1_lower and kw in t2_lower)
+    title_boost = min(0.25, synergy_count * 0.06)
 
-    # Weighted realistic final score (0.0 to 1.0)
-    raw_hybrid = (0.45 * tfidf_score) + (0.35 * overlap_score) + title_boost
+    # Domain mismatch penalty (e.g. Senior iOS / Swift / Ruby roles when resume lacks them)
+    mismatch_penalty = 0.0
+    strict_unmatched = ['swift', 'ios', 'ruby', 'rails', 'php', 'flutter', 'react native', 'golang', 'rust']
+    for um in strict_unmatched:
+        if um in t2_lower and um not in t1_lower:
+            mismatch_penalty += 0.15
 
-    # Map raw score accurately to intuitive percentage without flat inflation
-    if raw_hybrid < 0.05:
-        final_score = max(0.15, raw_hybrid * 3.0)
+    raw_hybrid = max(0.0, (0.50 * tfidf_score) + (0.35 * overlap_score) + title_boost - mismatch_penalty)
+
+    # Accurate score mapping: reflect true match strength without forcing baseline 40% on unrelated jobs
+    if raw_hybrid < 0.03:
+        final_score = raw_hybrid * 2.0
+    elif raw_hybrid < 0.10:
+        final_score = 0.20 + (raw_hybrid * 2.5)
     else:
-        final_score = min(0.98, max(0.35, 0.40 + (raw_hybrid * 1.35)))
+        final_score = min(0.98, 0.45 + (raw_hybrid * 1.1))
 
     return float(round(final_score, 4))
 
@@ -139,7 +152,8 @@ def rank_all_jobs(resume_path="resume.md", min_score=0.0):
     except Exception:
         pass
 
-    high_priority_keywords = ['engineer', 'developer', 'python', 'software', 'support', 'electronics', 'cybersecurity', 'tech', 'customer', 'data', 'analyst', 'project']
+    core_tech_keywords = ['engineer', 'electronics', 'cybersecurity', 'python', 'support', 'customer', 'project', 'hardware', 'systems', 'analyst', 'data', 'c++', 'c ']
+    strict_unmatched = ['swift', 'ios', 'ruby', 'rails', 'php', 'flutter', 'react native', 'golang', 'rust']
     
     ranked = []
     updates = []
@@ -147,6 +161,7 @@ def rank_all_jobs(resume_path="resume.md", min_score=0.0):
     for idx, job in enumerate(jobs):
         tfidf_score = float(tfidf_scores[idx]) if idx < len(tfidf_scores) else 0.0
         content_text = job_contents[idx]
+        t2_lower = content_text.lower()
         
         # 2. Skill & Domain Keyword Overlap
         job_skills = extract_key_skills(content_text)
@@ -156,18 +171,24 @@ def rank_all_jobs(resume_path="resume.md", min_score=0.0):
             shared = resume_skills.intersection(job_skills)
             overlap_score = len(shared) / max(1.0, float(len(job_skills)))
 
-        # 3. Title & Role Keyword Synergy
-        t2_lower = content_text.lower()
-        synergy_count = sum(1 for kw in high_priority_keywords if kw in t1_lower and kw in t2_lower)
-        title_boost = min(0.30, synergy_count * 0.08)
+        # 3. Title & Role Synergy
+        synergy_count = sum(1 for kw in core_tech_keywords if kw in t1_lower and kw in t2_lower)
+        title_boost = min(0.25, synergy_count * 0.06)
 
-        # Weighted realistic score
-        raw_hybrid = (0.45 * tfidf_score) + (0.35 * overlap_score) + title_boost
+        # Domain mismatch penalty
+        mismatch_penalty = 0.0
+        for um in strict_unmatched:
+            if um in t2_lower and um not in t1_lower:
+                mismatch_penalty += 0.15
 
-        if raw_hybrid < 0.05:
-            final_score = max(0.15, raw_hybrid * 3.0)
+        raw_hybrid = max(0.0, (0.50 * tfidf_score) + (0.35 * overlap_score) + title_boost - mismatch_penalty)
+
+        if raw_hybrid < 0.03:
+            final_score = raw_hybrid * 2.0
+        elif raw_hybrid < 0.10:
+            final_score = 0.20 + (raw_hybrid * 2.5)
         else:
-            final_score = min(0.98, max(0.35, 0.40 + (raw_hybrid * 1.35)))
+            final_score = min(0.98, 0.45 + (raw_hybrid * 1.1))
 
         score = float(round(final_score, 4))
         job['match_score'] = score
@@ -190,5 +211,6 @@ def rank_all_jobs(resume_path="resume.md", min_score=0.0):
 if __name__ == "__main__":
     matches = rank_all_jobs()
     print(f"Ranked {len(matches)} jobs accurately.")
+
 
 

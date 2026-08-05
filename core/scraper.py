@@ -143,8 +143,14 @@ def run_job_scraper(search_term="software engineer", location="remote", hours_ol
     
     tasks = [
         lambda: scrape_remotive(search_term),
-        lambda: scrape_remotive("developer"),
+        lambda: scrape_remotive("electronics"),
+        lambda: scrape_remotive("hardware"),
+        lambda: scrape_remotive("embedded"),
+        lambda: scrape_remotive("cybersecurity"),
+        lambda: scrape_remotive("technical support"),
+        lambda: scrape_remotive("customer support"),
         lambda: scrape_remotive("python"),
+        lambda: scrape_remotive("project manager"),
         scrape_arbeitnow,
         scrape_remoteok,
         scrape_jobicy,
@@ -152,7 +158,7 @@ def run_job_scraper(search_term="software engineer", location="remote", hours_ol
     ]
 
     # Execute all API scrapers concurrently in parallel threads
-    with ThreadPoolExecutor(max_workers=7) as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
         futures = [executor.submit(t) for t in tasks]
         for f in as_completed(futures):
             try:

@@ -138,7 +138,8 @@ class SystemAPIHandler(SimpleHTTPRequestHandler):
         elif path == '/api/upload_cv':
             import base64
             import io
-            import PyPDF2
+            import zipfile
+            import xml.etree.ElementTree as ET
             
             filename = body.get('filename', 'uploaded_cv.pdf')
             file_b64 = body.get('file_b64', '')
@@ -152,13 +153,52 @@ class SystemAPIHandler(SimpleHTTPRequestHandler):
                 extracted_text = ""
 
                 if filename.lower().endswith('.pdf'):
-                    pdf_reader = PyPDF2.PdfReader(io.BytesIO(raw_bytes))
-                    for page in pdf_reader.pages:
-                        extracted_text += page.extract_text() + "\n"
+                    try:
+                        import PyPDF2
+                        pdf_reader = PyPDF2.PdfReader(io.BytesIO(raw_bytes))
+                        for page in pdf_reader.pages:
+                            t = page.extract_text()
+                            if t:
+                                extracted_text += t + "\n"
+                    except Exception as pdf_err:
+                        logger.info(f"PyPDF2 error: {pdf_err}")
+                    
+                    if not extracted_text.strip():
+                        # Fallback regex stream extractor for unencrypted PDFs
+                        try:
+                            raw_str = raw_bytes.decode('latin-1', errors='ignore')
+                            found = re.findall(r'\((.*?)\)\s*TJ', raw_str)
+                            if not found:
+                                found = re.findall(r'\((.*?)\)\s*Tj', raw_str)
+                            if found:
+                                extracted_text = " ".join(found)
+                        except Exception:
+                            pass
+
                     with open("resume.pdf", "wb") as f:
                         f.write(raw_bytes)
+
+                elif filename.lower().endswith('.docx'):
+                    try:
+                        with zipfile.ZipFile(io.BytesIO(raw_bytes)) as z:
+                            xml_content = z.read('word/document.xml')
+                            tree = ET.fromstring(xml_content)
+                            texts = []
+                            for elem in tree.iter():
+                                if elem.tag.endswith('t') and elem.text:
+                                    texts.append(elem.text)
+                            extracted_text = " ".join(texts)
+                    except Exception as docx_err:
+                        logger.info(f"DOCX parse error: {docx_err}")
+
                 else:
-                    extracted_text = raw_bytes.decode('utf-8', errors='ignore')
+                    for enc in ['utf-8', 'latin-1', 'cp1252', 'utf-16']:
+                        try:
+                            extracted_text = raw_bytes.decode(enc)
+                            if extracted_text.strip():
+                                break
+                        except Exception:
+                            continue
 
                 if extracted_text.strip():
                     with open("resume.md", "w", encoding="utf-8") as f:
@@ -174,7 +214,7 @@ class SystemAPIHandler(SimpleHTTPRequestHandler):
                         "jobs_rescored": len(matches)
                     })
                 else:
-                    self.send_json({"error": "Could not extract text from file."}, 400)
+                    self.send_json({"error": "Could not extract readable text from file. Please paste your text directly into the editor below."}, 400)
             except Exception as e:
                 self.send_json({"error": f"Upload error: {e}"}, 500)
 
