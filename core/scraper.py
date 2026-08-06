@@ -14,6 +14,45 @@ def generate_unique_id(company, title, url_or_date):
     raw = f"{company.strip().lower()}_{title.strip().lower()}_{str(url_or_date).strip().lower()}"
     return hashlib.md5(raw.encode('utf-8')).hexdigest()
 
+import re
+import html
+
+def scrape_linkedin(search_term="electronics engineer", location="Egypt"):
+    jobs = []
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+    }
+    try:
+        url = f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={requests.utils.quote(search_term)}&location={requests.utils.quote(location)}&start=0"
+        res = requests.get(url, headers=headers, timeout=8)
+        if res.status_code == 200:
+            titles = [html.unescape(re.sub(r'<[^>]+>', '', x).strip()) for x in re.findall(r'<h3[^>]*class="base-search-card__title"[^>]*>(.*?)</h3>', res.text, re.DOTALL)]
+            companies = [html.unescape(re.sub(r'<[^>]+>', '', x).strip()) for x in re.findall(r'<h4[^>]*class="base-search-card__subtitle"[^>]*>(.*?)</h4>', res.text, re.DOTALL)]
+            locations = [html.unescape(re.sub(r'<[^>]+>', '', x).strip()) for x in re.findall(r'<span[^>]*class="job-search-card__location"[^>]*>(.*?)</span>', res.text, re.DOTALL)]
+            urls = re.findall(r'href="(https://[^\s"]+)"', res.text)
+
+            min_len = min(len(titles), len(companies))
+            for i in range(min_len):
+                t = titles[i]
+                c = companies[i]
+                l = locations[i] if i < len(locations) else location
+                u = urls[i] if i < len(urls) else 'https://www.linkedin.com/jobs'
+                unique_id = generate_unique_id(c, t, u)
+                jobs.append({
+                    'id': unique_id,
+                    'title': t,
+                    'company': c,
+                    'location': l,
+                    'description': f"Role position: {t} at {c} in {l}. Full details available on LinkedIn posting.",
+                    'url': u,
+                    'source': 'LinkedIn',
+                    'date_posted': datetime.now().isoformat()
+                })
+    except Exception as e:
+        logger.info(f"LinkedIn fetch skipped/timed out: {e}")
+    return jobs
+
 def scrape_remotive(search_term="software engineer"):
     jobs = []
     try:
@@ -36,6 +75,7 @@ def scrape_remotive(search_term="software engineer"):
     except Exception as e:
         logger.info(f"Remotive fetch skipped/timed out: {e}")
     return jobs
+
 
 def scrape_arbeitnow():
     jobs = []
@@ -142,6 +182,12 @@ def run_job_scraper(search_term="software engineer", location="remote", hours_ol
     all_jobs = []
     
     tasks = [
+        lambda: scrape_linkedin("electronics engineer", "Egypt"),
+        lambda: scrape_linkedin("software engineer", "Cairo, Egypt"),
+        lambda: scrape_linkedin("cybersecurity", "Egypt"),
+        lambda: scrape_linkedin("hardware engineer", "Egypt"),
+        lambda: scrape_linkedin("technical support", "Egypt"),
+        lambda: scrape_linkedin("public relations", "Egypt"),
         lambda: scrape_remotive(search_term),
         lambda: scrape_remotive("electronics"),
         lambda: scrape_remotive("hardware"),
@@ -156,6 +202,7 @@ def run_job_scraper(search_term="software engineer", location="remote", hours_ol
         scrape_jobicy,
         scrape_himalayas
     ]
+
 
     # Execute all API scrapers concurrently in parallel threads
     with ThreadPoolExecutor(max_workers=10) as executor:

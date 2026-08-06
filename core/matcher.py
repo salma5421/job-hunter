@@ -128,7 +128,11 @@ def calculate_cosine_similarity(text1, text2):
 
 
 def rank_all_jobs(resume_path="resume.md", min_score=0.0):
+    if isinstance(resume_path, (int, float)):
+        min_score = float(resume_path)
+        resume_path = "resume.md"
     resume_text = read_resume_file(resume_path)
+
     if not resume_text:
         return []
         

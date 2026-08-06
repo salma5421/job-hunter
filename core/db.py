@@ -30,61 +30,62 @@ def init_db():
     try:
         conn = get_connection()
         c = conn.cursor()
+        
+        # Jobs table
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS jobs (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                company TEXT NOT NULL,
+                location TEXT,
+                description TEXT,
+                url TEXT,
+                source TEXT,
+                date_posted TEXT,
+                date_scraped TEXT,
+                match_score REAL DEFAULT 0.0,
+                applied INTEGER DEFAULT 0
+            )
+        ''')
+        
+        # Cache / Seen table to prevent duplicate alerts
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS seen (
+                job_id TEXT PRIMARY KEY,
+                posted_date TEXT,
+                first_seen TEXT
+            )
+        ''')
+        
+        # Cover letters table
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS cover_letters (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id TEXT UNIQUE,
+                job_title TEXT,
+                company TEXT,
+                letter TEXT,
+                created_at TEXT,
+                FOREIGN KEY(job_id) REFERENCES jobs(id)
+            )
+        ''')
+        
+        # Interview prep sessions
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS interview_prep (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                job_id TEXT,
+                questions_json TEXT,
+                created_at TEXT
+            )
+        ''')
 
-    
-    # Jobs table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS jobs (
-            id TEXT PRIMARY KEY,
-            title TEXT NOT NULL,
-            company TEXT NOT NULL,
-            location TEXT,
-            description TEXT,
-            url TEXT,
-            source TEXT,
-            date_posted TEXT,
-            date_scraped TEXT,
-            match_score REAL DEFAULT 0.0,
-            applied INTEGER DEFAULT 0
-        )
-    ''')
-    
-    # Cache / Seen table to prevent duplicate alerts
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS seen (
-            job_id TEXT PRIMARY KEY,
-            posted_date TEXT,
-            first_seen TEXT
-        )
-    ''')
-    
-    # Cover letters table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS cover_letters (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            job_id TEXT UNIQUE,
-            job_title TEXT,
-            company TEXT,
-            letter TEXT,
-            created_at TEXT,
-            FOREIGN KEY(job_id) REFERENCES jobs(id)
-        )
-    ''')
-    
-    # Interview prep sessions
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS interview_prep (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            job_id TEXT,
-            questions_json TEXT,
-            created_at TEXT
-        )
-    ''')
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
     except Exception as e:
         print(f"init_db exception: {e}")
+
+
 
 
 def save_job(job_dict):
