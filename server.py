@@ -249,6 +249,10 @@ class SystemAPIHandler(SimpleHTTPRequestHandler):
         else:
             self.send_json({"error": "Endpoint not found"}, 404)
 
+# Vercel Serverless Entrypoints
+app = SystemAPIHandler
+handler = SystemAPIHandler
+
 def start_server():
     server = HTTPServer(('0.0.0.0', PORT), SystemAPIHandler)
     print(f"🚀 Start Working Remotely Web Dashboard running at http://localhost:{PORT}")
@@ -260,3 +264,4 @@ def start_server():
 
 if __name__ == "__main__":
     start_server()
+
