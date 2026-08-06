@@ -1,6 +1,17 @@
 {
+  "functions": {
+    "api/index.py": {
+      "memory": 1024
+    }
+  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.py" },
-    { "source": "/(.*)", "destination": "/web/$1" }
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/web/:path*"
+    }
   ]
 }
