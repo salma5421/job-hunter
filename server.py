@@ -24,8 +24,13 @@ PORT = int(os.getenv("PORT", 5000))
 WEB_DIR = os.path.join(os.path.dirname(__file__), "web")
 
 class SystemAPIHandler(SimpleHTTPRequestHandler):
+    directory = WEB_DIR
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=WEB_DIR, **kwargs)
+        if 'directory' not in kwargs and self.directory:
+            kwargs['directory'] = self.directory
+        super().__init__(*args, **kwargs)
+
 
     def log_message(self, format, *args):
         # Suppress routine GET logging for cleaner terminal output

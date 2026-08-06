@@ -1,18 +1,36 @@
 import sqlite3
 import json
 import os
+import shutil
 from datetime import datetime
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "jobs_cache.db")
+BASE_DB = os.path.join(os.path.dirname(os.path.dirname(__file__)), "jobs_cache.db")
+
+def resolve_db_path():
+    # If running on Vercel or read-only filesystem, use /tmp
+    if os.environ.get("VERCEL") or not os.access(os.path.dirname(BASE_DB) or ".", os.W_OK):
+        tmp_db = os.path.join("/tmp", "jobs_cache.db")
+        if not os.path.exists(tmp_db) and os.path.exists(BASE_DB):
+            try:
+                shutil.copy2(BASE_DB, tmp_db)
+            except Exception:
+                pass
+        return tmp_db
+    return BASE_DB
+
+DB_PATH = resolve_db_path()
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    target_path = resolve_db_path()
+    conn = sqlite3.connect(target_path)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
-    conn = get_connection()
-    c = conn.cursor()
+    try:
+        conn = get_connection()
+        c = conn.cursor()
+
     
     # Jobs table
     c.execute('''
@@ -65,6 +83,9 @@ def init_db():
 
     conn.commit()
     conn.close()
+    except Exception as e:
+        print(f"init_db exception: {e}")
+
 
 def save_job(job_dict):
     conn = get_connection()
