@@ -749,58 +749,181 @@ function clientSideEvaluateAnswer(question, answer) {
 
 function getFallbackJobsList() {
   return [
+    // --- LinkedIn Egypt Local Roles ---
     {
-      id: "fallback_1",
-      title: "Technical Support Specialist (Remote)",
+      id: "li_eg_1",
+      title: "Hardware Engineer",
+      company: "Arrow Electronics",
+      location: "Cairo, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.94,
+      description: "Hardware electronics design, circuit testing, PCB validation, and embedded systems engineering. Experience with Proteus, logic analyzers, and C/C++ coding."
+    },
+    {
+      id: "li_eg_2",
+      title: "Standard Embedded/Power Electronics Developer",
+      company: "Brightskies",
+      location: "Cairo, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.92,
+      description: "Develop embedded software and power electronics control algorithms for automotive and industrial IoT systems. Requires C/C++, logic circuit design, and hardware debugging."
+    },
+    {
+      id: "li_eg_3",
+      title: "Cybersecurity Architect & Specialist",
+      company: "Valeo",
+      location: "Cairo, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.90,
+      description: "Define automotive cybersecurity architectures, threat modeling (TARA), ISO 21434 compliance, and secure hardware/software interfaces."
+    },
+    {
+      id: "li_eg_4",
+      title: "Software Engineer - C++ & Logic Simulation",
+      company: "Siemens EDA",
+      location: "New Cairo, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.89,
+      description: "Develop electronic design automation (EDA) software for microelectronics verification, IC logic simulation, and high-performance algorithms."
+    },
+    {
+      id: "li_eg_5",
+      title: "Emulation & Hardware Engineer",
+      company: "Cisco",
+      location: "Cairo, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.88,
+      description: "Work on next-generation networking hardware emulation, FPGA logic verification, and Python automation for hardware test suites."
+    },
+    {
+      id: "li_eg_6",
+      title: "Big Data & Python Systems Engineer",
+      company: "Vodafone",
+      location: "Giza, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.87,
+      description: "Design data pipelines, automated reporting workflows, and scalable backends using Python, SQL, and cloud microservices."
+    },
+    {
+      id: "li_eg_7",
+      title: "Security Engineer (Cloud & AI Focus)",
+      company: "Bayzat",
+      location: "Alexandria, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.86,
+      description: "Cloud infrastructure security, vulnerability assessments, automated threat detection, and AI-driven monitoring systems."
+    },
+    {
+      id: "li_eg_8",
+      title: "Junior Systems Engineer (Power Electronics)",
+      company: "Valeo",
+      location: "Cairo, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.85,
+      description: "Junior engineer position for electronics and communication graduates. Focus on power electronics, CAD circuit modeling, and embedded testing."
+    },
+    {
+      id: "li_eg_9",
+      title: "Public Relations & Communications Specialist",
+      company: "IBSRA Tech",
+      location: "Giza, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.84,
+      description: "Manage public relations strategy, external stakeholder outreach, media communications, and event management for biomedical & engineering initiatives."
+    },
+    {
+      id: "li_eg_10",
+      title: "Technical Customer Support Engineer (English Account)",
+      company: "Informa Markets",
+      location: "Cairo, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.83,
+      description: "High-volume international customer support, resolving complex technical inquiries in English and Arabic, and client relationship management."
+    },
+    {
+      id: "li_eg_11",
+      title: "Analog/Mixed Signal IC Design Engineer",
+      company: "Analog Devices",
+      location: "Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.82,
+      description: "Design analog integrated circuits, signal conditioning amplifiers, and high-frequency electronic filters."
+    },
+    {
+      id: "li_eg_12",
+      title: "Cybersecurity Manager",
+      company: "EVA Pharma",
+      location: "Giza, Egypt",
+      source: "LinkedIn",
+      date_posted: new Date().toISOString(),
+      match_score: 0.81,
+      description: "Lead enterprise IT cybersecurity, risk mitigation policies, SIEM monitoring, and incident response operations."
+    },
+    // --- International Remote Roles ---
+    {
+      id: "rem_1",
+      title: "Remote Technical Support & Systems Engineer",
       company: "CloudScale Technologies",
-      location: "Remote",
+      location: "Remote (Worldwide)",
       source: "RemoteOK",
       date_posted: new Date().toISOString(),
       match_score: 0.88,
-      description: "Looking for a Technical Support Specialist with strong communication skills, problem solving, Python scripting, and customer service experience to assist international clients."
+      description: "Provide tier-2/3 technical support, write Python automation scripts, and troubleshoot customer network & server issues globally."
     },
     {
-      id: "fallback_2",
-      title: "Junior Systems & Hardware Engineer",
-      company: "AeroTech Solutions",
+      id: "rem_2",
+      title: "Remote Junior Embedded Systems Developer",
+      company: "AeroTech Systems",
       location: "Remote",
       source: "Remotive",
       date_posted: new Date().toISOString(),
-      match_score: 0.84,
-      description: "Entry-level hardware and systems engineer position. Requires knowledge of circuit design, signal processing, Python/C coding, and testing methodologies."
+      match_score: 0.85,
+      description: "Develop firmware, microcontroller communication protocols (SPI, I2C, UART), and signal simulation software in C and Python."
     },
     {
-      id: "fallback_3",
-      title: "Cybersecurity & Operations Analyst",
+      id: "rem_3",
+      title: "Remote Cybersecurity Analyst",
       company: "SecureNet Global",
       location: "Remote",
       source: "Himalayas",
       date_posted: new Date().toISOString(),
-      match_score: 0.81,
-      description: "Monitor network traffic, assist with security audits, and document incident response protocols. Ideal for candidates with cybersecurity training and strong analytical skills."
+      match_score: 0.83,
+      description: "Perform remote security audits, penetration testing analysis, and security documentation for international SaaS clients."
     },
     {
-      id: "fallback_4",
-      title: "Public Relations & Community Coordinator",
-      company: "NexGen Media",
+      id: "rem_4",
+      title: "Remote Python Data & Automation Developer",
+      company: "DataFlow Labs",
+      location: "Remote",
+      source: "Jobicy",
+      date_posted: new Date().toISOString(),
+      match_score: 0.80,
+      description: "Build robust web scrapers, REST APIs, and automated data processing tools using Python, BeautifulSoup, and SQL."
+    },
+    {
+      id: "rem_5",
+      title: "Remote Project Operations & PR Lead",
+      company: "NexGen Global",
       location: "Remote",
       source: "Arbeitnow",
       date_posted: new Date().toISOString(),
       match_score: 0.78,
-      description: "Manage outreach, coordinate event partnerships, and direct public relations campaigns for tech and research initiatives."
-    },
-    {
-      id: "fallback_5",
-      title: "Python & Automation Engineer",
-      company: "DataFlow Systems",
-      location: "Remote",
-      source: "Jobicy",
-      date_posted: new Date().toISOString(),
-      match_score: 0.74,
-      description: "Build automated web scrapers, data pipelines, and internal tools using Python and SQL. Work closely with cross-functional teams."
+      description: "Coordinate international tech events, lead community public relations, and streamline cross-functional project workflows."
     }
   ];
 }
+
 
 function cleanSnippet(str) {
   if (!str) return '';
